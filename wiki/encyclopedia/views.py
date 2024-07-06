@@ -64,7 +64,7 @@ def search(request):
             searchentries = util.get_entry(query)
 
             if searchentries:
-                return redirect(reverse('encyclopedia/wikipage.html', args=[query]))
+                return redirect(reverse('encyclopedia:getentry', args=[query]))
             
             else:
                 related = []
