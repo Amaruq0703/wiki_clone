@@ -11,18 +11,26 @@ class NewSearchForm(forms.Form):
         'placeholder' : 'Search Encyclopedia'
     }))
 
+class NewEntryForm(forms.Form):
 
-entries = util.list_entries()
+    topic = forms.CharField(widget=forms.TextInput(attrs={
+        'placeholder' : 'Enter Topic Name',
+    }), label='')
+
+    content = forms.CharField(widget=forms.Textarea(attrs={
+        'placeholder' : 'Enter Markdown Content Here',
+    }), label='')
+
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
-        "entries": entries,
+        "entries": util.list_entries(),
         'search_form':  NewSearchForm()
     })
 
 def getentry(request, title):
 
-    if title in entries:
+    if title in util.list_entries():
         mdfile = util.get_entry(title)
         htmlfile = markdown2.markdown(mdfile)
         
@@ -50,12 +58,12 @@ def search(request):
             searchentries = util.get_entry(query)
 
             if searchentries:
-                return redirect(reverse('encyclopedia:getentry', args=[query]))
+                return redirect(reverse('encyclopedia/wikipage.html', args=[query]))
             
             else:
                 related = []
 
-                for entry_name in entries:
+                for entry_name in util.list_entries():
                     if query.lower() in entry_name.lower() or entry_name.lower() in query.lower():
                         related.append(entry_name)
 
@@ -64,7 +72,31 @@ def search(request):
                 "related": related,
                 "search_form": NewSearchForm()
                 })
+
+def createentry(request):
+
+    if request.method == 'POST':
+        createform = NewEntryForm(request.POST)
+
+        if createform.is_valid():
+        
+            topic = createform.cleaned_data['topic']
+            content = createform.cleaned_data['content']
+
+            if topic in util.list_entries():
+                return render(request, 'encyclopedia/createerror.html', {
+                    'topic' : topic,
+                    'search_form' : NewSearchForm()
+                })
+                
+            util.save_entry(topic, content)
+            return redirect(reverse('encyclopedia:getentry', args=[topic]))
             
+    return render(request, 'encyclopedia/newtask.html', {
+        'createform' : NewEntryForm()
+    })
+
+
 
 
 
