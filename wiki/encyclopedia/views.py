@@ -21,6 +21,11 @@ class NewEntryForm(forms.Form):
         'placeholder' : 'Enter Markdown Content Here',
     }), label='')
 
+class EditEntryForm(forms.Form):
+
+    topic = forms.CharField(widget=forms.TextInput, label = '')
+    content = forms.CharField(widget=forms.Textarea, label = '')
+
 
 def index(request):
     return render(request, "encyclopedia/index.html", {
@@ -95,6 +100,38 @@ def createentry(request):
     return render(request, 'encyclopedia/newtask.html', {
         'createform' : NewEntryForm()
     })
+
+def editpage(request, title):
+    editform = EditEntryForm(request.POST)
+    content = util.get_entry(title)
+
+    if request.method == 'POST':
+
+        if content == None:
+            return render(request, 'encyclopedia/editerror.html', {
+                'title' : title,
+                'search_form' : NewSearchForm()
+            })
+
+        if editform.is_valid():
+            newtopic = editform.cleaned_data['topic']
+            newcontent = editform.cleaned_data['content']
+
+            util.save_entry(newtopic, newcontent)
+            return redirect(reverse('encyclopedia:getentry', args=[newtopic]))
+
+    if request.method == 'GET':
+
+        return render(request, 'encyclopedia/editpage.html' ,{
+            'title' : title,
+            'content' : content,
+            'search_form' : NewSearchForm(),
+            'editform' : EditEntryForm(initial={'topic':title, 'content':content} )
+        })
+    
+
+
+        
 
 
 
