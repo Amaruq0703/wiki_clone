@@ -3,6 +3,7 @@ import markdown2
 from django.urls import reverse
 from django import forms
 from . import util
+import random
 
 
 class NewSearchForm(forms.Form):
@@ -129,6 +130,13 @@ def editpage(request, title):
             'editform' : EditEntryForm(initial={'topic':title, 'content':content} )
         })
     
+def randompage(request):
+    
+    entries = util.list_entries()
+    randNum = random.randrange(0, len(entries)-1)
+    randEntry = entries[randNum]
+
+    return redirect(reverse('encyclopedia:getentry', args=[randEntry]))
 
 
         
